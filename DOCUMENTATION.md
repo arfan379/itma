@@ -1,6 +1,6 @@
 # 📖 ITMA: Indonesian Transport & Mobility Analytics
 ## Dokumen Arsitektur Teknis, Data Pipeline, dan Spesifikasi Analitik
-**Versi: 1.1 · Status: Production-Ready · Tim: Data Engineering**
+**Versi: 1.1 · Status: Portfolio / Learning Project · Tim: Data Engineering**
 
 ---
 
@@ -170,10 +170,11 @@ Tabel fakta dan mart bisnis agregasi harian siap konsumsi analitik & dashboard B
 
 ITMA menerapkan pengujian bertingkat (*multi-layer verification*):
 
-### 6.1 PyTest Suite (17 Unit Tests — 100% PASS)
+### 6.1 PyTest Suite (21 Unit Tests — 100% PASS)
 - `test_gtfs_parser.py`: Pengujian parser format waktu normal, waktu lewat tengah malam (`25:10:00`), validasi kelengkapan berkas ZIP GTFS, dan ekstraksi `feed_version`.
+- `test_sample_gtfs.py`: Pengujian generator GTFS sintetis minimal untuk CI/CD (validitas berkas ZIP, keberadaan rute, dan jadwal lewat tengah malam).
 - `test_simulator.py`: Pengujian determinisme seed harian (reproducible), distribusi delay jam sibuk vs luar jam sibuk, injeksi insiden, schema validasi event Kafka, dan deteksi outlier.
-- `test_airflow_dag.py`: Pengujian integritas DAG Airflow, schedule `@daily`, ketiadaan siklus berulang (Acyclic DFS check), dan keterurutan rantai dependensi task.
+- `test_airflow_dag.py`: Pengujian integritas DAG Airflow, schedule `@daily`, ketiadaan siklus berulang (Acyclic DFS check), urutan dependensi task, dan penimpaan variabel lingkungan `DBT_BIN`.
 
 ### 6.2 dbt Data Quality Tests (46 Data Tests — 100% PASS)
 - **Relationships Tests**: Memvalidasi integritas referensial foreign key (`stg_schedules.route_id` harus ada di `raw.raw_gtfs_routes`).
@@ -231,7 +232,7 @@ Buka browser pada alamat `http://localhost:8081`.
 
 ## 8. Spesifikasi Target Deployment Cloud (Terraform IaC)
 
-File [infra/terraform/main.tf](file:///home/admindata/Documents/cobaaa/cobaa/infra/terraform/main.tf) menyediakan blueprint infrastruktur produksi di Google Cloud Platform (Region Jakarta `asia-southeast2`):
+File [infra/terraform/main.tf](infra/terraform/main.tf) menyediakan blueprint infrastruktur produksi di Google Cloud Platform (Region Jakarta `asia-southeast2`):
 - **VPC & Subnet Private**: Jaringan terisolasi untuk transmisi data telemetri.
 - **Cloud Storage Bucket**: Penyimpanan arsip file GTFS terversi dengan siklus hidup penghapusan otomatis 90 hari.
 - **Cloud SQL PostgreSQL (TimescaleDB Ready)**: Instance database terkelola dengan flag `shared_preload_libraries = timescaledb` dan konfigurasi backup otomatis.

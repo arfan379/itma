@@ -1,5 +1,8 @@
 # 🚌 ITMA: Indonesian Transport & Mobility Analytics
-**Versi 1.1 · Status: Production-Ready Data Pipeline · Author: Data Engineering Team**
+**Versi 1.1 · Status: Portfolio / Learning Project · Author: Data Engineering Team**
+
+> [!NOTE]
+> Proyek ini adalah **portfolio data engineering** untuk mendemonstrasikan kemampuan membangun end-to-end data pipeline. Data telemetri dan jadwal aktual adalah **sintetis** (ditandai `is_synthetic = true`). Hanya data statis GTFS TransJakarta yang berasal dari sumber resmi.
 
 ITMA adalah end-to-end data platform yang mengumpulkan jadwal transportasi publik TransJakarta (batch) dan telemetri kecepatan lalu lintas koridor Jabodetabek (streaming), mengolahnya menggunakan **dbt** dengan arsitektur **Medallion (Bronze, Silver, Gold)**, dan menghasilkan metrik utama keandalan mobilitas perkotaan:
 1. **On-Time Performance (OTP) / Delay Index** per rute per hari.
@@ -156,7 +159,7 @@ dbt docs serve --profiles-dir . --port 8081
 # Flake8 linter (0 errors)
 flake8 src/ tests/ dags/ --max-line-length 120
 
-# PyTest suite (17 passed)
+# PyTest suite (21 passed)
 pytest tests/ -v
 ```
 
@@ -204,10 +207,22 @@ itma/
 │           ├── fct_delay_index.sql
 │           ├── fct_route_density.sql
 │           └── mart_delay_vs_congestion.sql
+├── Dockerfile.airflow              # Custom Airflow image (dbt + kafka-python + numpy)
 ├── dags/
 │   └── itma_daily.py               # Airflow DAG orkestrasi harian
 └── tests/
     ├── test_airflow_dag.py         # Unit tests integritas DAG Airflow
     ├── test_gtfs_parser.py         # Unit tests parser GTFS (>24:00, validation)
+    ├── test_sample_gtfs.py         # Unit tests generator GTFS sintetis CI
     └── test_simulator.py           # Unit tests simulator (seed, peak hours, schema)
 ```
+
+---
+
+## ⚠️ Batasan & Limitasi
+
+1. **Data Sintetis**: `actual_arrival_time` dan telemetri kecepatan segmen jalan sepenuhnya dibuat oleh simulator Python. Korelasi delay-kemacetan yang terlihat di Gold layer adalah artefak dari desain simulator, **bukan** temuan empiris dari data operasional nyata.
+2. **Scope Rute**: Versi 1 hanya mencakup **TransJakarta** (10 koridor). Belum termasuk KRL, MRT, LRT, atau moda lainnya.
+3. **Tanpa Dashboard BI**: Pipeline menghasilkan tabel Gold tetapi belum dilengkapi dashboard visualisasi (Metabase/Superset). Data dapat dieksplorasi langsung via SQL atau dbt docs.
+4. **Single-Node Kafka**: Konfigurasi Kafka menggunakan replication factor 1 — tidak cocok untuk produksi.
+5. **Belum Ada Monitoring**: Tidak ada Prometheus/Grafana, alerting, atau SLA monitoring yang terpasang.

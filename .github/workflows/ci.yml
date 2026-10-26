@@ -47,7 +47,7 @@ jobs:
 
       - name: Run Flake8 Linter
         run: |
-          flake8 src/ tests/ --max-line-length 120
+          flake8 src/ tests/ dags/ --max-line-length 120
 
       - name: Run PyTest
         env:
@@ -66,6 +66,21 @@ jobs:
       - name: Seed dbt Tables
         run: |
           cd transform && dbt seed --profiles-dir .
+
+      - name: Generate Sample GTFS Feed
+        run: |
+          python src/ingestion/sample_gtfs.py
+
+      - name: Load Sample GTFS into Bronze
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: itma_user
+          POSTGRES_PASSWORD: itma_password
+          POSTGRES_DB: itma_db
+          GTFS_SOURCE: data/sample_gtfs.zip
+        run: |
+          python src/ingestion/api_extractor.py
 
       - name: Generate Test Schedule & Telemetry Data
         env:

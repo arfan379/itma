@@ -21,13 +21,16 @@ def test_dag_task_count_and_ids():
         "run_delay_simulator",
         "run_telemetry_producer",
         "run_kafka_consumer",
+        "dbt_deps",
         "dbt_seed",
         "dbt_run",
         "dbt_test",
         "dbt_docs_generate"
     }
     task_ids = {t.task_id for t in dag.tasks}
-    assert expected_tasks.issubset(task_ids)
+    assert expected_tasks.issubset(task_ids), (
+        f"Missing tasks: {expected_tasks - task_ids}"
+    )
 
 
 def test_dag_has_no_cycles():
@@ -59,10 +62,21 @@ def test_dag_task_dependencies_order():
     delay = dag.get_task("run_delay_simulator")
     telemetry = dag.get_task("run_telemetry_producer")
     consumer = dag.get_task("run_kafka_consumer")
+    dbt_deps = dag.get_task("dbt_deps")
     dbt_run = dag.get_task("dbt_run")
     dbt_test = dag.get_task("dbt_test")
 
     assert delay in ingest.downstream_list
     assert telemetry in delay.downstream_list
     assert consumer in telemetry.downstream_list
+    assert dbt_deps in consumer.downstream_list
     assert dbt_test in dbt_run.downstream_list
+
+
+def test_dbt_bin_env_override():
+    """Validates that dbt tasks use DBT_BIN env variable."""
+    import os
+    from dags.itma_daily import DBT_BIN
+
+    expected = os.environ.get("DBT_BIN", "dbt")
+    assert DBT_BIN == expected

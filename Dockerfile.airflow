@@ -1,0 +1,15 @@
+# Dockerfile.airflow
+# Custom Airflow image bundled with dbt-postgres, kafka-python, and numpy
+# so DAG tasks can call dbt and Python simulators inside the container.
+
+FROM apache/airflow:2.8.2-python3.11
+
+USER airflow
+
+RUN pip install --no-cache-dir \
+    dbt-postgres>=1.7.0 \
+    kafka-python>=2.0.2 \
+    numpy>=1.26.0 \
+    psycopg2-binary>=2.9.9 \
+    pyyaml>=6.0.1 \
+    requests>=2.31.0

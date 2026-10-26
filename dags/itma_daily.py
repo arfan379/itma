@@ -16,6 +16,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+# Allow overriding the dbt binary path (e.g., in containers)
+DBT_BIN = os.environ.get("DBT_BIN", "dbt")
+
 
 default_args = {
     "owner": "itma-data-eng",
@@ -87,27 +90,43 @@ with DAG(
         python_callable=task_consume_telemetry,
     )
 
+    dbt_deps = BashOperator(
+        task_id="dbt_deps",
+        bash_command=(
+            f"cd /opt/airflow/transform && {DBT_BIN} deps --profiles-dir ."
+        ),
+    )
+
     dbt_seed = BashOperator(
         task_id="dbt_seed",
-        bash_command="cd /opt/airflow/transform && dbt seed --profiles-dir .",
+        bash_command=(
+            f"cd /opt/airflow/transform && {DBT_BIN} seed --profiles-dir ."
+        ),
     )
 
     dbt_run = BashOperator(
         task_id="dbt_run",
-        bash_command="cd /opt/airflow/transform && dbt run --profiles-dir .",
+        bash_command=(
+            f"cd /opt/airflow/transform && {DBT_BIN} run --profiles-dir ."
+        ),
     )
 
     dbt_test = BashOperator(
         task_id="dbt_test",
-        bash_command="cd /opt/airflow/transform && dbt test --profiles-dir .",
+        bash_command=(
+            f"cd /opt/airflow/transform && {DBT_BIN} test --profiles-dir ."
+        ),
     )
 
     dbt_docs_generate = BashOperator(
         task_id="dbt_docs_generate",
-        bash_command="cd /opt/airflow/transform && dbt docs generate --profiles-dir .",
+        bash_command=(
+            f"cd /opt/airflow/transform && {DBT_BIN} docs generate "
+            f"--profiles-dir ."
+        ),
     )
 
     # Linear dependencies
     ingest_gtfs >> run_delay_simulator
     run_delay_simulator >> run_telemetry_producer >> run_kafka_consumer
-    run_kafka_consumer >> dbt_seed >> dbt_run >> dbt_test >> dbt_docs_generate
+    run_kafka_consumer >> dbt_deps >> dbt_seed >> dbt_run >> dbt_test >> dbt_docs_generate
