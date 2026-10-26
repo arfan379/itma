@@ -224,9 +224,9 @@ dbt test --profiles-dir .
 ```bash
 cd transform
 dbt docs generate --profiles-dir .
-dbt docs serve --profiles-dir . --port 8081
+dbt docs serve --profiles-dir . --port 8085
 ```
-Buka browser pada alamat `http://localhost:8081`.
+Buka browser pada alamat `http://localhost:8085`.
 
 ---
 

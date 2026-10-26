@@ -151,7 +151,7 @@ dbt test --profiles-dir .
 
 # Bangun dan buka visualisasi lineage data
 dbt docs generate --profiles-dir .
-dbt docs serve --profiles-dir . --port 8081
+dbt docs serve --profiles-dir . --port 8085
 ```
 
 ### 5. Menjalankan Unit Tests & Linter
@@ -165,7 +165,7 @@ pytest tests/ -v
 
 ### 6. Menjalankan Airflow DAG
 ```bash
-# Akses Airflow Webserver di http://localhost:8080 (User: admin, Pass: admin)
+# Akses Airflow Webserver di http://localhost:8081 (User: admin, Pass: admin)
 # Atau jalankan task DAG itma_daily secara terisolasi via CLI:
 airflow dags test itma_daily $(date +%Y-%m-%d)
 ```
